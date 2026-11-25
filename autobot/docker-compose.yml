@@ -1,0 +1,46 @@
+name: autobot
+services:
+  autobot:
+    build: .
+    env_file: ${AUTOBOT_ENV_FILE:-.env}
+    environment:
+      DATABASE_PATH: /data/autobot.sqlite3
+    init: true
+    ports:
+      - '127.0.0.1:8080:8080'
+    volumes:
+      - app-data:/data
+      - ./runtime/status:/run/autobot:ro
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'python', '-c', 'import urllib.request; urllib.request.urlopen("http://127.0.0.1:8080/healthz", timeout=3)']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  synapse:
+    profiles: [messenger]
+    image: ${SYNAPSE_IMAGE:-matrixdotorg/synapse:v1.141.0}
+    environment:
+      SYNAPSE_SERVER_NAME: ${MATRIX_DOMAIN:-matrix.autobot.internal}
+      SYNAPSE_REPORT_STATS: 'no'
+    ports:
+      - '127.0.0.1:8008:8008'
+    volumes:
+      - ./runtime/synapse:/data
+    restart: unless-stopped
+
+  mautrix-meta:
+    profiles: [messenger]
+    image: ${MAUTRIX_IMAGE:-dock.mau.dev/mautrix/meta:v26.11}
+    volumes:
+      - ./runtime/mautrix:/data
+    depends_on: [autobot, synapse]
+    restart: unless-stopped
+
+volumes:
+  app-data:

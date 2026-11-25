@@ -1,0 +1,5 @@
+.env
+runtime/
+data/
+__pycache__/
+.venv/

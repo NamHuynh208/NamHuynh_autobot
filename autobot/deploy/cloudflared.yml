@@ -1,0 +1,10 @@
+# Copy as /etc/cloudflared/config.yml, then prepend the real tunnel UUID and credentials-file.
+ingress:
+  - hostname: autobot.example.com
+    path: '^/internal(/|$)'
+    service: http_status:404
+  - hostname: autobot.example.com
+    service: http://127.0.0.1:8080
+    originRequest:
+      httpHostHeader: autobot.example.com
+  - service: http_status:404

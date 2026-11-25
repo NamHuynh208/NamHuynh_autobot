@@ -1,0 +1,14 @@
+# Secrets & runtime data
+.env
+*.env.local
+runtime/
+data/
+*.db
+*.sqlite*
+# Danh sách liên hệ Messenger (dữ liệu cá nhân)
+danh-sach-phong.md
+# Python
+__pycache__/
+.venv/
+.pytest_cache/
+.claude/

@@ -1,0 +1,8 @@
+aiosqlite==0.21.0
+croniter==6.0.0
+discord.py-self==2.1.0
+fastapi==0.135.3
+httpx==0.28.1
+uvicorn==0.42.0
+PyYAML==6.0.3
+tzdata==2025.3

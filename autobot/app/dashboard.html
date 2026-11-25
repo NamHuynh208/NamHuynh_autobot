@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AutoBot · Bản tin</title><link rel="stylesheet" href="/static/style.css"><script src="/static/dashboard.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">Đến nội dung</a>
+  <header class="shell"><div class="top wrap">
+    <a class="brand" href="#reports"><span class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 17l4-7 3 4 3-7 4 10M5 20h14" stroke-linecap="round" stroke-linejoin="round"/></svg></span>AutoBot</a>
+    <nav aria-label="Điều hướng chính"><a href="#reports">Bản tin</a><a href="#messages">Tin nhắn</a><a href="#settings">Cấu hình</a></nav>
+    <button id="logout" class="quiet" type="button">Đăng xuất</button>
+  </div></header>
+  <main class="wrap" id="main">
+    <p id="feedback" class="feedback" role="status"></p>
+    <section id="reports" aria-labelledby="reports-title">
+      <div class="page-head"><div><h1 id="reports-title">Bản tin tổng hợp</h1><p>Đọc báo cáo AI trước, đối chiếu tin nhắn gốc khi cần.</p></div><button id="trigger" class="primary">Quét &amp; Tóm tắt ngay</button></div>
+      <div class="overview">
+        <article class="feature" aria-labelledby="latest-title"><div class="feature-head"><h2 id="latest-title">Báo cáo mới nhất</h2><span id="latest-state" class="badge" hidden></span></div><div id="latest"><p class="muted">Đang tải báo cáo…</p></div></article>
+        <aside class="operations" aria-labelledby="operations-title">
+          <h2 id="operations-title">Vận hành</h2>
+          <div class="service"><span>Discord Listener</span><span class="badge" id="discord-status">Đang tải</span></div>
+          <div class="service"><span>Messenger Bridge</span><span class="badge" id="meta-status">Đang tải</span></div>
+          <div class="service subservice"><span>Đồng bộ Matrix</span><span class="badge" id="matrix-status">Đang tải</span></div>
+          <div class="service"><span>Scheduler</span><span class="badge" id="scheduler-status">Đang tải</span></div>
+          <label class="service toggle"><span>Tự động tổng hợp</span><input id="automatic" type="checkbox" role="switch" disabled></label>
+          <p class="muted" id="stats"></p><p class="muted" id="job"></p><p class="muted" id="checked"></p>
+        </aside>
+      </div>
+      <section class="history" aria-labelledby="history-title"><h2 id="history-title">Lịch sử báo cáo</h2>
+        <form id="report-filter" class="filter"><label>Nền tảng<select name="platform"><option value="">Tất cả</option><option value="discord">Discord</option><option value="messenger">Messenger</option></select></label><label>Từ ngày<input type="date" name="start"></label><label>Đến ngày<input type="date" name="end"></label><button>Lọc báo cáo</button></form>
+        <div id="report-list" class="timeline"></div><button id="more-reports" hidden>Xem báo cáo cũ hơn</button>
+      </section>
+    </section>
+    <section id="messages" aria-labelledby="messages-title" hidden>
+      <div class="page-head"><div><h1 id="messages-title">Tin nhắn gốc</h1><p>Tin nhắn văn bản mới nhất đã được thu thập.</p></div></div>
+      <form id="message-filter" class="filter"><label>Nền tảng<select name="platform"><option value="">Tất cả</option><option value="discord">Discord</option><option value="messenger">Messenger</option></select></label><label>Trạng thái<select name="summarized"><option value="">Tất cả</option><option value="0">Chưa tóm tắt</option><option value="1">Đã tóm tắt</option></select></label><label>Từ khóa<input type="search" name="q" maxlength="200"></label><button>Lọc tin nhắn</button></form>
+      <p id="message-note" class="muted"></p>
+      <div class="table-wrap"><table aria-label="Tin nhắn đã thu thập"><thead><tr><th scope="col">Thời gian</th><th scope="col">Nguồn</th><th scope="col">Nội dung</th><th scope="col">Trạng thái</th></tr></thead><tbody id="message-list"></tbody></table></div>
+      <button id="more-messages" hidden>Xem tin cũ hơn</button>
+    </section>
+    <section id="settings" aria-labelledby="settings-title" hidden>
+      <div class="page-head"><div><h1 id="settings-title">Cấu hình</h1><p>Thay đổi có hiệu lực sau khi lưu, không cần khởi động lại.</p></div></div>
+      <form id="settings-form" class="settings">
+        <fieldset><legend>Nguồn tin</legend><p class="muted">Mỗi ID một dòng hoặc cách nhau bằng dấu phẩy. Nếu không chọn nguồn nào, AutoBot không thu tin. Danh sách bỏ qua luôn được ưu tiên.</p>
+        <label>Discord · Server IDs theo dõi<textarea name="discord_servers" rows="2" aria-describedby="discord-server-hint" disabled></textarea></label>
+        <p id="discord-server-hint" class="muted">Nhập Server ID để thu tin mới từ các kênh và thread tài khoản có thể xem. Bỏ qua một kênh cũng loại các thread thuộc kênh đó.</p><div class="field-grid">
+          <label>Discord · Channel IDs theo dõi<textarea name="discord_rooms" rows="3"></textarea></label><label>Discord · Channel IDs bỏ qua<textarea name="discord_ignore" rows="3"></textarea></label>
+          <label>Messenger · Matrix Room IDs theo dõi<textarea name="matrix_rooms" rows="3"></textarea></label><label>Messenger · Matrix Room IDs bỏ qua<textarea name="matrix_ignore" rows="3"></textarea></label>
+        </div></fieldset>
+        <fieldset><legend>Lịch chạy</legend><div class="field-grid"><label>Khoảng cách giữa các lượt (phút)<input name="interval_minutes" type="number" min="5" max="1440" required></label><label>Cron tổng hợp buổi sáng<input name="morning_cron" required maxlength="80" aria-describedby="cron-hint"></label></div><p id="cron-hint" class="muted">Cron 5 trường, ví dụ <code>30 7 * * *</code>. Múi giờ: <span id="zone">Asia/Ho_Chi_Minh</span>.</p></fieldset>
+        <fieldset><legend>Mô hình AI</legend><div class="field-grid"><label>API Base URL<input name="base_url" type="url" maxlength="500" required aria-describedby="ai-hint"></label><label>Tên model<input name="model" maxlength="160" required></label></div><p id="ai-hint" class="muted">Chỉ dùng endpoint HTTPS đã được cho phép trên server. Không nhập API key vào đây.</p><label>Chỉ dẫn ưu tiên cho AI<textarea name="system_prompt" rows="5" maxlength="4000"></textarea></label></fieldset>
+        <button class="primary" disabled>Lưu cấu hình</button>
+      </form>
+    </section>
+  </main>
+</body></html>

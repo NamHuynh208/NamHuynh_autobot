@@ -1,0 +1,5 @@
+{
+  "colors": {"ink": "#15233a", "muted": "#50627a", "line": "#dce4ef", "accent": "#254cbd", "accentDark": "#1b3995", "wash": "#f2f6fd", "white": "#ffffff", "danger": "#9b2944"},
+  "radius": {"control": "7px", "panel": "12px"},
+  "breakpoints": {"stacked": "700px"}
+}
