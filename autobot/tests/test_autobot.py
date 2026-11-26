@@ -72,18 +72,21 @@ class DatabaseTests(unittest.IsolatedAsyncioTestCase):
         def upstream(request):
             calls.append(request.url.host)
             if request.url.path.endswith("/chat/completions"):
-                assert "18:00" in request.content.decode()
+                request_body = json.loads(request.content)
+                assert "18:00" in request_body["messages"][1]["content"]
+                assert request_body["reasoning_effort"] == "max"
+                assert json.loads(request_body["messages"][1]["content"])[0]["nguon"]
                 return httpx.Response(200, json={"choices": [{"message": {"content": json.dumps({
-                    "urgent": "Hạn chót 18:00!", "important": "", "casual": ""})}}]})
+                    "important": "Hạn chót 18:00!", "sources": [{"name": "Nhóm A", "summary": "An nhắc nộp bài."}]})}}]})
             body = json.loads(request.content)
             assert body["messaging_type"] == "UPDATE"
             assert body["recipient"] == {"id": "456"}
-            assert "18:00!" in body["message"]["text"]
+            assert "18:00!" in body["message"]["text"] and "• Nhóm A: An nhắc nộp bài." in body["message"]["text"]
             if calls.count("graph.facebook.com") == 1:
                 return httpx.Response(503)
             return httpx.Response(200, json={"message_id": "sent"})
 
-        with patch.dict(os.environ, {"OPENAI_API_KEY": "mock", "FB_APP_SECRET": "secret", "FB_VERIFY_TOKEN": "verify",
+        with patch.dict(os.environ, {"OPENAI_API_KEY": "mock", "OPENAI_REASONING_EFFORT": "max", "FB_APP_SECRET": "secret", "FB_VERIFY_TOKEN": "verify",
                                      "FB_PAGE_ACCESS_TOKEN": "token", "FB_PAGE_ID": "123", "MY_FB_PSID": "456"}):
             async with httpx.AsyncClient(transport=httpx.MockTransport(upstream)) as client:
                 async with db.tx() as conn:

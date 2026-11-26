@@ -55,9 +55,13 @@ function digest(row) {
   wrapper.append(text('p', `${format(row.created)} · Discord ${row.discord_count} · Messenger ${row.messenger_count}`, 'digest-meta'));
   const sections = document.createElement('div');
   sections.className = 'digest';
-  for (const [key, label] of Object.entries(groups)) {
+  // Reports before the per-source format keep the three legacy groups.
+  const parts = row.body.sources
+    ? [['⭐ Quan trọng', row.body.important], ...row.body.sources.map(item => [item.name, item.summary])]
+    : Object.entries(groups).map(([key, label]) => [label, row.body[key]]);
+  for (const [label, body] of parts) {
     const section = document.createElement('section');
-    section.append(text('h3', label), text('p', row.body[key].trim() || 'Không có mục nổi bật.'));
+    section.append(text('h3', label), text('p', (body || '').trim() || 'Không có mục nổi bật.'));
     sections.append(section);
   }
   wrapper.append(sections);

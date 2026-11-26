@@ -50,3 +50,26 @@ class DiscordListenerTests(unittest.IsolatedAsyncioTestCase):
             call([("discord", "2", thread, "An", "Lịch sáng mai", 100)], server_id=server, parent_id=allowed),
         ])
         self.assertEqual(health["discord"], "error")
+
+    async def test_names_channels_threads_and_old_rows(self):
+        from app.database import Database
+        from app.discord_listener import name_old_rows, place
+
+        general = SimpleNamespace(name="chung")
+        thread = SimpleNamespace(name="Kế hoạch", parent=general)
+        self.assertEqual(place(general), "#chung")
+        self.assertEqual(place(thread), "#chung › Kế hoạch")
+        self.assertIsNone(place(SimpleNamespace(id=1)))
+        db = Database()
+        await db.open(":memory:")
+        self.addAsyncCleanup(db.conn.close)
+        room, gone = "123456789012345678", "123456789012345679"
+        await db.save_settings(Settings(discord_rooms=[room, gone]))
+        await db.ingest([("discord", "1", room, "An", "a", 1), ("discord", "2", room, "Bình · #cũ", "b", 1),
+                         ("discord", "3", gone, "Chi", "c", 1)])
+        async def fetch(cid):
+            raise discord.NotFound(MagicMock(status=404), "gone")
+        client = SimpleNamespace(get_channel=lambda cid: thread if str(cid) == room else None, fetch_channel=fetch)
+        await name_old_rows(db, client)
+        self.assertEqual([r["author"] for r in await db.rows("SELECT author FROM messages ORDER BY external_id")],
+                         ["An · #chung › Kế hoạch", "Bình · #cũ", "Chi"])

@@ -61,7 +61,6 @@ textarea { resize: vertical; }
 .digest section:last-child { padding-bottom: 0; }
 .digest h3 { color: var(--accent-dark); }
 .digest section:first-child h3 { color: var(--danger); }
-.digest section:last-child h3 { color: var(--muted); }
 .digest p, td { overflow-wrap: anywhere; white-space: pre-wrap; }
 .digest p { margin-top: 3px; max-width: 70ch; }
 .history { margin-top: 34px; }

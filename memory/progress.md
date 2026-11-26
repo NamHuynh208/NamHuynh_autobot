@@ -1,4 +1,4 @@
-> Cập nhật: 2026-11-25
+> Cập nhật: 2026-11-27
 
 - [x] Chốt FastAPI và giao diện web không cần build Node.
 - [x] Hoàn thành backend, dashboard, Docker Compose, bootstrap Matrix và cấu hình systemd/Tunnel.
@@ -13,3 +13,6 @@
 - [x] mautrix-meta đăng nhập xong, theo dõi các phòng Messenger đã chọn (2026-11-20).
 - [ ] Thử tin mới từ Messenger, xác nhận tab Tin nhắn và /tomtat.
 - [x] Push lên GitHub repo NamHuynh_autobot (public) kèm README gốc (2026-11-25).
+- [x] Báo cáo theo từng người/kênh + mục Quan trọng chung; thinking max cho tóm tắt; chuyển câu hỏi khó sang Sol có lùi về Luna (2026-11-26). 11 test qua.
+- [ ] Thử báo cáo mới và /tuvan trên Page (Sol đã gọi được).
+- [x] Tắt/bật tóm tắt nguồn bằng câu nói tự nhiên qua Page, 13 test qua (2026-11-27).
