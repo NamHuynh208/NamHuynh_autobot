@@ -1,4 +1,4 @@
-> Cập nhật: 2026-11-26
+> Cập nhật: 2026-11-27
 
 - Đã xây dựng `autobot/`; dashboard ưu tiên báo cáo mới nhất theo lựa chọn của người dùng.
 - Cloudflare Tunnel; Discord Gateway và Matrix `/sync` chỉ thu thập tin văn bản.
@@ -28,3 +28,4 @@
 - Discord author giờ kèm "#tên-kênh".
 - Tóm tắt dùng reasoning_effort=OPENAI_REASONING_EFFORT (VM: max). Page chat: Luna trả lời, trả "__SOL__" hoặc /tuvan -> model *-sol mới nhất (/models) hoặc OPENAI_ADVISOR_MODEL, effort OPENAI_ADVISOR_EFFORT (medium); lỗi HTTP thì lùi về Luna.
 - Sol (gpt-6.2-sol) đã dùng được ở mức medium (2026-11-26, sau vài lần proxy trả 404).
+- Bật/tắt tóm tắt nguồn bằng câu nói tự nhiên qua Page (2026-11-27): page_chat.manage_sources gửi Luna câu nói + danh sách nguồn thật (id, tên); chỉ chấp nhận id có trong danh sách, không chắc thì hỏi lại. Tắt = thêm vào discord_ignore/matrix_ignore + đánh dấu tin chờ là đã tóm tắt.

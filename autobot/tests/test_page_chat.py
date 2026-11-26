@@ -115,6 +115,8 @@ class ReplyTests(unittest.IsolatedAsyncioTestCase):
             calls.append((str(request.url), payload))
             if request.url.path.endswith("chat/completions"):
                 context = json.loads(payload["messages"][1]["content"])
+                if "cau_noi" in context:
+                    return httpx.Response(200, json={"choices": [{"message": {"content": "{\"action\": \"none\"}"}}]})
                 assert any(row["content"] == "LỊCH HỌP thứ sáu" for row in context["messages"])
                 assert any(row["content"].startswith("Tin mới") for row in context["messages"])
                 assert all(row["room"] == CHANNEL and "+07:00" in row["ts"] for row in context["messages"])
@@ -137,7 +139,7 @@ class ReplyTests(unittest.IsolatedAsyncioTestCase):
                 for command in ("/status", "/tomtat"):
                     await page_chat.reply(db, state, client, job | {"question": command}, services)
                 await page_chat.reply(db, state, client, job | {"sender": "789", "question": "/status"}, services)
-                self.assertEqual(len(calls), 6)
+                self.assertEqual(len(calls), 7)
                 self.assertIn("Scheduler: hoạt động", calls[-2][1]["message"]["text"])
                 self.assertIn("dashboard", calls[-1][1]["message"]["text"])
                 self.assertTrue(state.wake.is_set())
@@ -171,3 +173,39 @@ class AdvisorTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(models[1], ("gpt-6.10-sol", "medium"))
         self.assertEqual(models[2][1], "max")
         self.assertTrue(text.startswith("(Sol chưa dùng được") and text.endswith("Lời khuyên"))
+
+
+class SourceMuteTest(unittest.IsolatedAsyncioTestCase):
+    async def test_natural_language_mute_list_unmute(self):
+        db = Database()
+        await db.open(":memory:")
+        self.addAsyncCleanup(db.conn.close)
+        room = "!nhom:matrix.autobot.internal"
+        thread = "123456789012345690"
+        await db.save_settings(Settings(discord_rooms=[CHANNEL, thread], matrix_rooms=[room]))
+        now = int(time.time())
+        await db.ingest([("messenger", "m1", room, "An · Nhóm CLB", "a", now),
+                         ("discord", "d1", CHANNEL, "Bình · #chung", "b", now)])
+        await db.ingest([("discord", "d2", thread, "Chi · #chung › Kế hoạch", "c", now)], parent_id=CHANNEL)
+        plans = iter([{"action": "mute", "ids": [room, CHANNEL, "!bịa:x"]}, {"action": "list"},
+                      {"action": "mute", "ids": [], "hoi_lai": "Ý bạn là #chung hay #chung › Kế hoạch?"},
+                      {"action": "unmute", "ids": [CHANNEL]}, {"action": "none"}])
+
+        def upstream(request):
+            sent = json.loads(json.loads(request.content)["messages"][1]["content"])
+            assert {s["id"] for s in sent["nguon"]} == {room, CHANNEL, thread}
+            return httpx.Response(200, json={"choices": [{"message": {"content": json.dumps(next(plans))}}]})
+
+        with patch.dict(os.environ, {"OPENAI_API_KEY": "mock"}):
+            async with httpx.AsyncClient(transport=httpx.MockTransport(upstream)) as client:
+                ask = lambda: page_chat.manage_sources(db, client, "câu nói")
+                self.assertIn("Đã tắt tóm tắt: Nhóm CLB, #chung", await ask())
+                self.assertEqual((db.settings.matrix_ignore, db.settings.discord_ignore), ([room], [CHANNEL]))
+                # Thread under the muted channel is skipped too.
+                self.assertEqual(await db.rows("SELECT is_summarized FROM messages"), [{"is_summarized": 1}] * 3)
+                listing = await ask()
+                self.assertIn("Nhóm CLB", listing)
+                self.assertIn("Kế hoạch", await ask())
+                self.assertIn("Đã bật lại", await ask())
+                self.assertEqual(db.settings.discord_ignore, [])
+                self.assertIsNone(await ask())
