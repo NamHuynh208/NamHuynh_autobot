@@ -33,7 +33,9 @@ async def run_discord(db, token, health):
             parent = getattr(message.channel, "parent_id", None)
             parent_id = str(parent) if parent is not None else None
             if db.settings.allows("discord", room, server_id, parent_id):
-                await db.ingest([("discord", str(message.id), room, message.author.display_name[:160],
+                channel = getattr(message.channel, "name", None)
+                author = f"{message.author.display_name} · #{channel}" if channel else message.author.display_name
+                await db.ingest([("discord", str(message.id), room, author[:160],
                                   message.content[:8000], int(message.created_at.timestamp()))],
                                 server_id=server_id, parent_id=parent_id)
 

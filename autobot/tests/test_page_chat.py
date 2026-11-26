@@ -142,3 +142,32 @@ class ReplyTests(unittest.IsolatedAsyncioTestCase):
                 self.assertIn("dashboard", calls[-1][1]["message"]["text"])
                 self.assertTrue(state.wake.is_set())
                 self.assertEqual(await db.rows("SELECT kind FROM jobs"), [{"kind": "manual"}])
+
+
+class AdvisorTest(unittest.IsolatedAsyncioTestCase):
+    async def test_escalation_picks_newest_sol_and_falls_back(self):
+        db = Database()
+        await db.open(":memory:")
+        self.addAsyncCleanup(db.conn.close)
+        await db.save_settings(Settings(discord_rooms=[CHANNEL]))
+        await db.ingest([("discord", "m1", CHANNEL, "An · #chung", "Dự án trễ hạn", int(time.time()))])
+        models = []
+
+        def upstream(request):
+            if request.url.path.endswith("/models"):
+                return httpx.Response(200, json={"data": [{"id": "gpt-6-luna"}, {"id": "gpt-6.2-sol"}, {"id": "gpt-6.10-sol"}]})
+            payload = json.loads(request.content)
+            models.append((payload["model"], payload.get("reasoning_effort")))
+            if len(models) == 1:
+                return httpx.Response(200, json={"choices": [{"message": {"content": page_chat.ESCALATE}}]})
+            if payload["model"].endswith("-sol"):
+                return httpx.Response(404)
+            return httpx.Response(200, json={"choices": [{"message": {"content": "Lời khuyên"}}]})
+
+        env = {"OPENAI_API_KEY": "mock", "OPENAI_ADVISOR_EFFORT": "medium", "OPENAI_REASONING_EFFORT": "max"}
+        with patch.dict(os.environ, env):
+            async with httpx.AsyncClient(transport=httpx.MockTransport(upstream)) as client:
+                text = await page_chat.answer(db, client, "Nên xử lý dự án trễ hạn thế nào?")
+        self.assertEqual(models[1], ("gpt-6.10-sol", "medium"))
+        self.assertEqual(models[2][1], "max")
+        self.assertTrue(text.startswith("(Sol chưa dùng được") and text.endswith("Lời khuyên"))

@@ -1,4 +1,4 @@
-> Cập nhật: 2026-11-25
+> Cập nhật: 2026-11-26
 
 - Đã xây dựng `autobot/`; dashboard ưu tiên báo cáo mới nhất theo lựa chọn của người dùng.
 - Cloudflare Tunnel; Discord Gateway và Matrix `/sync` chỉ thu thập tin văn bản.
@@ -22,3 +22,9 @@
 
 ## GitHub (2026-11-25)
 - Repo public trên GitHub, nhánh main. danh-sach-phong.md, .env, runtime/ bị .gitignore.
+
+## Tóm tắt theo nguồn + Sol (2026-11-26)
+- Báo cáo mới: JSON {important, sources[{name, summary}]}; gom tin theo (platform, room), tên lấy từ author "Người · Phòng/#kênh". Dashboard vẫn đọc báo cáo cũ (urgent/important/casual).
+- Discord author giờ kèm "#tên-kênh".
+- Tóm tắt dùng reasoning_effort=OPENAI_REASONING_EFFORT (VM: max). Page chat: Luna trả lời, trả "__SOL__" hoặc /tuvan -> model *-sol mới nhất (/models) hoặc OPENAI_ADVISOR_MODEL, effort OPENAI_ADVISOR_EFFORT (medium); lỗi HTTP thì lùi về Luna.
+- Sol (gpt-6.2-sol) đã dùng được ở mức medium (2026-11-26, sau vài lần proxy trả 404).
